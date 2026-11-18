@@ -11,7 +11,9 @@ $utf8 = New-Object System.Text.UTF8Encoding $false
 foreach ($d in @("$T\src\main\java\com\weaveapp\aliascall", "$T\src\main\java\com\weaveapp\baronu", "$T\src\main\java\com\weaveapp\wafa")) {
   if (Test-Path $d) { Remove-Item -Recurse -Force $d; Write-Host "removed $d" }
 }
-# 2) copy kit files (java, manifest, icons, splash, build.gradle)
+# 2) remove old launcher icons (.webp) - the kit uses .png and both together = "Duplicate resources"
+Get-ChildItem "$T\src\main\res" -Recurse -Include 'ic_launcher*.webp','splash.webp' -ErrorAction SilentlyContinue | ForEach-Object { Remove-Item -Force $_.FullName; Write-Host ("removed " + $_.Name) }
+# 2b) copy kit files (java, manifest, icons, splash, build.gradle)
 Copy-Item -Recurse -Force "$K\app\*" "$T\"
 Write-Host "copied kit files"
 if (-not (Test-Path "$T\src\main\res\xml\file_paths.xml")) {
