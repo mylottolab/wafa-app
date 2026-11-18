@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 🔴 v27 누름 위젯 기본 그림(주황 동그라미 단추) — 라인 정보가 들어오기 전 잠깐 · 고르개에서 손으로 놓은 위젯 -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="14dp" />
+            <solid android:color="#E4572E" />
+            <size android:width="54dp" android:height="54dp" />
+        </shape>
+    </item>
+    <item android:left="13dp" android:top="13dp" android:right="13dp" android:bottom="13dp">
+        <shape android:shape="oval">
+            <stroke android:width="3dp" android:color="#FFFFFF" />
+        </shape>
+    </item>
+    <item android:left="21dp" android:top="21dp" android:right="21dp" android:bottom="21dp">
+        <shape android:shape="oval">
+            <solid android:color="#FFFFFF" />
+        </shape>
+    </item>
+</layer-list>

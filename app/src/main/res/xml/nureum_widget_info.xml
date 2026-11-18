@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 🔴 2026-10-30 누름 라인 위젯(1칸) -->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="40dp"
+    android:minResizeWidth="40dp"
+    android:minResizeHeight="40dp"
+    android:minHeight="40dp"
+    android:targetCellWidth="1"
+    android:targetCellHeight="1"
+    android:updatePeriodMillis="0"
+    android:initialLayout="@layout/nureum_widget"
+    android:previewImage="@drawable/nureum_widget_default"
+    android:resizeMode="none"
+    android:widgetCategory="home_screen" />

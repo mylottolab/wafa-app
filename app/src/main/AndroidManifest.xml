@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+
+        <!-- 와파 WAFA (com.weaveapp.wafa) — 와파 · 부름 안드로이드 버전 30을 바탕으로 만든 것 · 2026-11-19 -->
+        <activity
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
+            android:name=".MainActivity"
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme.NoActionBarLaunch"
+            android:launchMode="singleTask"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!-- 🔴 2026-11-01 (버전 29) — 누름 QR 카드를 휴대폰 카메라로 찍으면 burumnureum://line/<번호> 로 이 앱이 열립니다 -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="wafa" />
+            </intent-filter>
+        </activity>
+
+        <!-- 와파: 부름의 "부름걸기" 두 번째 아이콘은 넣지 않습니다 -->
+
+        <!-- 🔴 2026-10-04 (버전 14) — 화면 가득 "전화가 왔습니다" (에일리어스콜 버전 10 과 같은 화면).
+             잠금화면 위에 뜨고 화면을 켭니다. 최근 앱 목록에는 남기지 않습니다. -->
+        <activity
+            android:name=".IncomingCallActivity"
+            android:exported="false"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:launchMode="singleTop"
+            android:excludeFromRecents="true"
+            android:taskAffinity=""
+            android:theme="@style/AppTheme.NoActionBar" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <!-- 🔴 2026-10-05 (버전 17 · 2-1) — 폰(Telecom)에 "부름 통화" 를 알리는 창구.
+             블루투스 이어폰 · 차 핸들의 받기 · 거절 단추가 부름 전화를 다루게 됩니다.
+             ⚠ BIND_TELECOM_CONNECTION_SERVICE 권한이 있어야 폰(시스템)만 이 창구를 부를 수 있습니다. -->
+        <service
+            android:name=".CallConnectionService"
+            android:exported="true"
+            android:permission="android.permission.BIND_TELECOM_CONNECTION_SERVICE">
+            <intent-filter>
+                <action android:name="android.telecom.ConnectionService" />
+            </intent-filter>
+        </service>
+
+        <!-- 🔴 2026-09-22 — 통화 중 알림줄.
+             ⚠ foregroundServiceType 이 없으면 안드로이드 14 에서 켜지지 않습니다. -->
+        <service
+            android:name=".CallOngoingService"
+            android:exported="false"
+            android:foregroundServiceType="microphone|camera" />
+
+        <!-- 걸려온 전화를 잠금화면에 띄우는 창구 — 2026-09-10 추가.
+             ⚠ Capacitor 의 창구보다 우선순위를 높게 둡니다. 그래야 우리 것이 먼저 알림을 받습니다. -->
+        <service
+            android:name=".CallMessagingService"
+            android:exported="false">
+            <intent-filter android:priority="100">
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <!-- 🔴🔴 2026-10-05 (버전 16) — Capacitor 가 넣는 알림 받는 곳을 지웁니다(에일리어스콜 버전 12 와 같음).
+             받는 곳이 둘이면 요즘 안드로이드는 priority 를 보지 않고 "빌드가 합친 순서" 로 하나를 고릅니다.
+             에일리어스콜은 다시 빌드한 뒤 Capacitor 쪽이 뽑혀 벨 · 알림이 아예 안 왔습니다.
+             ⚠ CallMessagingService 는 Capacitor 의 것을 물려받으므로 전화가 아닌 알림은 그대로 처리됩니다. -->
+        <service
+            android:name="com.capacitorjs.plugins.pushnotifications.MessagingService"
+            tools:node="remove" />
+
+<!-- 🔴 2026-10-30 (버전 26) — 누름 라인 위젯(1칸). 부름 표시 없이 그 사람 아이콘처럼 보입니다. -->
+        <receiver
+            android:name=".NureumWidget"
+            android:label="와파 바로걸기"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/nureum_widget_info" />
+        </receiver>
+    </application>
+
+    <!-- Permissions -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- 통화용 — 2026-09-08 추가. Capacitor 가 기본으로 넣어주지 않아 손으로 넣었습니다. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- 🔴🔴 2026-09-24 — 구글 결제 (build.gradle 의 billing 8.0.0 과 짝) -->
+    <uses-permission android:name="com.android.vending.BILLING" />
+    <!-- 🔴 2026-09-22 — 통화 중 알림줄(포그라운드 서비스) -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
+    <!-- 🔴🔴 2026-09-12 — 잠금화면에 통화화면을 띄우는 권한.
+         ⚠ 이게 없으면 setFullScreenIntent 가 아무 말 없이 무시됩니다(배너만 뜸). -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <!-- 🔴 2026-10-05 (버전 17 · 2-1) — 스스로 관리하는 통화 앱(자체 관리 통화) 권한.
+         일반 권한이라 설치할 때 저절로 붙습니다(손님께 따로 묻지 않음). -->
+    <uses-permission android:name="android.permission.MANAGE_OWN_CALLS" />
+    <!-- required="false" 로 두어야 카메라 없는 기기에도 설치됩니다 -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
+</manifest>

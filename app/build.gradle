@@ -1,0 +1,73 @@
+apply plugin: 'com.android.application'
+
+android {
+    namespace = "com.weaveapp.alias"
+    compileSdk = rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId "com.weaveapp.wafa"   // 🔴 와파 WAFA (namespace 는 그대로 com.weaveapp.alias — 자바 파일 위치와 같아야 함)
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        // 🔴 2026-10-01 — 12 결제 수리판 (영수증을 화면 준비 뒤 넘기기 · 응답 번호 · 언제든 복구)
+        // 🔴 2026-10-03 — 13 받을 때까지 계속 울리기 (CallMessagingService · FLAG_INSISTENT)
+        // 🔴 2026-10-04 — 14 화면 가득 "전화가 왔습니다" (IncomingCallActivity)
+        // 🔴 2026-10-04 — 15 전체 화면 알림 꺼짐 안내(하루 한 번)
+        // 🔴 2026-10-05 — 16 알림 받는 곳 하나로 · 작은 [받기] 단추 없앰 · 앱을 보는 중이면 곧바로 큰 전화 화면
+        // 🔴 2026-10-05 — 17 2단계 2-1: 블루투스 이어폰 · 차 단추로 받기 · 거절 (CallConnectionService)
+        // 🔴 2026-10-05 — 17 2-1 블루투스 · 차 단추로 받기 · 거절
+        // 🔴 2026-10-05 — 18 큰 전화 화면 · 이어폰에서 [받기] 한 번이면 바로 연결(answered=1)
+        // 🔴 2026-10-05 — 19 2-2 이어폰 · 차 [끊기] 로 실제 통화 종료 · [거절] 을 서버까지
+        // 🔴 2026-10-05 — 20 2-3 통화 모드(하울링 줄이기) · 수화기 / 스피커 / 이어폰
+        // 🔴 2026-10-05 — 21 2-4 통화 중 일반 전화 — 부름은 대기 · 돌아오기 · 내가 건 통화도 폰에 알림
+        // 🔴 2026-10-27 — 24 통화 중 다른 앱을 봐도 통화 유지(화면 엔진 중요도 · 엔진 정리 시 앱 안 꺼짐)
+        // 🔴 2026-11-01 — 29 누름 QR 카드: 휴대폰 카메라로 찍어도 부름 앱이 그 사람 화면을 엶(burumnureum://)
+        // 🔴 2026-11-01 — 30 홈 화면 아이콘 이름: 부름·누름 / 부름걸기
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    implementation project(':capacitor-cordova-android-plugins')
+    // 잠금화면 전화 알림용 — 2026-09-10 추가
+    implementation "androidx.core:core:1.13.1"
+    implementation "com.google.firebase:firebase-messaging:23.4.1"
+    // 🔴 2026-09-24 — 구글 결제
+    implementation 'com.android.billingclient:billing:8.0.0'
+}
+
+apply from: 'capacitor.build.gradle'
+
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+} catch(Exception e) {
+    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}
