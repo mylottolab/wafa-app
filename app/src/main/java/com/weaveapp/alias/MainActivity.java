@@ -479,7 +479,7 @@ public class MainActivity extends BridgeActivity {
 
         android.content.ComponentName c = intent.getComponent();
         boolean phone = (c != null && c.getClassName().endsWith("PhoneAlias"));
-        openPageLater(phone ? "alias_phone.html" : "alias_contacts.html", 15);
+        openPageLater(phone ? "alias_phone.html" : "wafa_dial.html", 15);   // 🔴 2026-11-21 와파: 아이콘을 누르면 번호판(첫 화면)으로
     }
 
     private void openCallIfAsked(android.content.Intent intent) {
