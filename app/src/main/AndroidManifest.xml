@@ -93,6 +93,11 @@
             tools:node="remove" />
 
 <!-- 🔴 2026-10-30 (버전 26) — 누름 라인 위젯(1칸). 부름 표시 없이 그 사람 아이콘처럼 보입니다. -->
+        <!-- 🔴 2026-11-22 알림에서 바로 [읽음] [답장] -->
+        <receiver
+            android:name=".QuickReplyReceiver"
+            android:exported="false" />
+
         <receiver
             android:name=".NureumWidget"
             android:label="와파 바로걸기"

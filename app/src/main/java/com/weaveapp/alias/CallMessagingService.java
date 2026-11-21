@@ -130,6 +130,9 @@ public class CallMessagingService extends MessagingService {
         Map<String, String> d = msg.getData();
         String kind = d.get("kind");
 
+        /* 🔴 2026-11-22 — 메시지는 위에 뜨는 알림 + [읽음] [답장] (서버가 data 만 보낸 경우) */
+        if (QuickReply.handle(this, d)) return;
+
         /* 🔴 2026-09-10 — A 가 끊으면 벨을 즉시 멈춥니다.
            알림 채널이 울리는 벨은 화면 쪽 코드로는 못 멈춥니다.
            B 가 통화화면에 들어가지 않았으면 그 코드가 아예 안 돌기 때문입니다.

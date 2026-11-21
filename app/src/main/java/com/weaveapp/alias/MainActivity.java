@@ -280,7 +280,7 @@ public class MainActivity extends BridgeActivity {
        ⚠ 전화 알림으로 들어온 경우가 먼저입니다.
        ================================================================= */
     private static final java.util.regex.Pattern NUREUM_PAGE =
-            java.util.regex.Pattern.compile("^(nureum_line\\.html\\?line=[0-9a-f-]{36}|nureum\\.html)$");
+            java.util.regex.Pattern.compile("^(nureum_line\\.html\\?line=[0-9a-f-]{36}|nureum\\.html|alias_chat\\.html\\?link=[0-9a-f-]{36}(&bridged=1)?)$");   // 🔴 2026-11-22 + 답장 알림을 누르면 그 대화방
 
     private boolean nureumCold = false;
     /* 🔴 v27 — 마지막으로 무엇으로 놓았나(widget · shortcut · none · 위젯 실패 이유). 화면이 안내 문구를 고르려고 묻습니다 */
@@ -664,6 +664,9 @@ public class MainActivity extends BridgeActivity {
                      다 읽으면 화면의 window.__wafaSpoke(id) 를 부릅니다. 없으면 화면이 9초 뒤 알아서 넘어갑니다. */
                 @android.webkit.JavascriptInterface
                 public boolean ttsReady() { return ttsOk; }
+                /* 🔴 2026-11-22 — 이 앱이 할 줄 아는 것. qr1 = 알림에서 바로 답장(위에 뜨는 메시지 알림) */
+                @android.webkit.JavascriptInterface
+                public String caps() { QuickReply.ensureChannel(MainActivity.this); return "qr1"; }
                 /* 🔴 2026-11-21 와파 「전화 올 때」 벨 · 진동 · 무음 — 앱이 꺼져 있을 때 오는 전화도 이 값으로 */
                 @android.webkit.JavascriptInterface
                 public void setRingMode(String m) {
