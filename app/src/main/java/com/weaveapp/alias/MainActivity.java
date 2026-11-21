@@ -622,9 +622,52 @@ public class MainActivity extends BridgeActivity {
          보내기 · 통화 중 알림줄 · 알림 상태 묻기와 설정 열기 · 결제** 뿐입니다.
          다른 것은 열어주지 않습니다.
        ================================================================= */
+    /* ── 🔴 2026-11-21 기본 음성(TTS) ─────────────────────────────── */
+    private android.speech.tts.TextToSpeech tts;
+    private volatile boolean ttsOk = false;
+    private void ttsInit() {
+        try {
+            tts = new android.speech.tts.TextToSpeech(getApplicationContext(), status -> {
+                ttsOk = (status == android.speech.tts.TextToSpeech.SUCCESS);
+                if (!ttsOk) return;
+                tts.setOnUtteranceProgressListener(new android.speech.tts.UtteranceProgressListener() {
+                    @Override public void onStart(String id) {}
+                    @Override public void onDone(String id) { ttsDone(id); }
+                    @Override public void onError(String id) { ttsDone(id); }
+                });
+            });
+        } catch (Exception e) { ttsOk = false; }
+    }
+    private void ttsDone(final String id) {
+        runOnUiThread(() -> {
+            try { getBridge().getWebView().evaluateJavascript(
+                "try{window.__wafaSpoke&&window.__wafaSpoke(" + org.json.JSONObject.quote(id == null ? "" : id) + ")}catch(e){}", null); } catch (Exception e) {}
+        });
+    }
+    private void wafaSpeak(String text, String lang, String id) {
+        if (tts == null || !ttsOk || text == null) { ttsDone(id); return; }
+        try {
+            java.util.Locale loc = "en".equals(lang) ? java.util.Locale.US : java.util.Locale.KOREAN;
+            int r = tts.setLanguage(loc);
+            if (r == android.speech.tts.TextToSpeech.LANG_MISSING_DATA || r == android.speech.tts.TextToSpeech.LANG_NOT_SUPPORTED) { ttsDone(id); return; }
+            android.os.Bundle b = new android.os.Bundle();
+            b.putInt(android.speech.tts.TextToSpeech.Engine.KEY_PARAM_STREAM, android.media.AudioManager.STREAM_MUSIC);
+            tts.speak(text, android.speech.tts.TextToSpeech.QUEUE_FLUSH, b, id == null ? "wafa" : id);
+        } catch (Exception e) { ttsDone(id); }
+    }
+
     private void addNativeBridge() {
+        ttsInit();
         try {
             getBridge().getWebView().addJavascriptInterface(new Object() {
+                /* 🔴 2026-11-21 와파 음성사서함 안내 — 안드로이드 기본 음성(TextToSpeech)으로 읽어 줌.
+                     다 읽으면 화면의 window.__wafaSpoke(id) 를 부릅니다. 없으면 화면이 9초 뒤 알아서 넘어갑니다. */
+                @android.webkit.JavascriptInterface
+                public boolean ttsReady() { return ttsOk; }
+                @android.webkit.JavascriptInterface
+                public void speak(final String text, final String lang, final String id) { wafaSpeak(text, lang, id); }
+                @android.webkit.JavascriptInterface
+                public void stopSpeak() { try { if (tts != null) tts.stop(); } catch (Exception e) {} }
                 @android.webkit.JavascriptInterface
                 public void cancelCall(String callId) {
                     cancelCallNotice(callId);
@@ -1036,6 +1079,7 @@ public class MainActivity extends BridgeActivity {
        ⚠ 통화 없이 알림줄과 마이크 표시만 남으면 손님이 불안해합니다. */
     @Override
     public void onDestroy() {
+        try { if (tts != null) { tts.stop(); tts.shutdown(); } } catch (Exception e) {}   // 🔴 2026-11-21
         try { CallOngoingService.stop(this); } catch (Exception e) { /* 그대로 */ }
         try { CallConnectionService.endAll(); } catch (Throwable e) { /* 그대로 */ }
         super.onDestroy();

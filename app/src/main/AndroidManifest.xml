@@ -128,4 +128,11 @@
     <!-- required="false" 로 두어야 카메라 없는 기기에도 설치됩니다 -->
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.microphone" android:required="false" />
+
+    <!-- 🔴 2026-11-21 음성사서함 안내 — 안드로이드 11 이상에서 기본 음성(TTS) 엔진을 찾으려면 꼭 필요 -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
+    </queries>
 </manifest>
