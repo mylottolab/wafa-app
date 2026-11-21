@@ -230,10 +230,13 @@ public class CallMessagingService extends MessagingService {
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         ensureCallChannel();   // 🔴 버전 16 — 업데이트 뒤 앱을 아직 안 열었어도 벨이 울리게
-        NotificationCompat.Builder b = new NotificationCompat.Builder(this, "calls")
+        /* 🔴 2026-11-21 와파 「전화 올 때」 — ring(벨+진동) · vibrate(진동만) · silent(소리 · 진동 없이 화면만) */
+        String rm = getSharedPreferences("wafa", MODE_PRIVATE).getString("ring_mode", "ring");
+        String chId = "vibrate".equals(rm) ? "calls_vib" : "silent".equals(rm) ? "calls_quiet" : "calls";
+        NotificationCompat.Builder b = new NotificationCompat.Builder(this, chId)
                 .setSmallIcon(android.R.drawable.sym_call_incoming)
                 .setContentTitle(who)
-                .setContentText("Alias 전화")
+                .setContentText("와파 전화")
                 .setPriority(NotificationCompat.PRIORITY_MAX)
                 .setCategory(NotificationCompat.CATEGORY_CALL)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
@@ -291,6 +294,7 @@ public class CallMessagingService extends MessagingService {
     /* 전화 채널("calls")이 없으면 여기서 만듭니다 — MainActivity.makeChannels 와 같은 설정 */
     private void ensureCallChannel() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
+        ensureQuietCallChannels(this);   // 🔴 2026-11-21 (아래 "calls" 가 이미 있으면 바로 돌아가므로 먼저)
         try {
             NotificationManager nm = getSystemService(NotificationManager.class);
             if (nm == null || nm.getNotificationChannel("calls") != null) return;
@@ -307,5 +311,32 @@ public class CallMessagingService extends MessagingService {
                             .setUsage(android.media.AudioAttributes.USAGE_NOTIFICATION_RINGTONE).build());
             nm.createNotificationChannel(ch);
         } catch (Exception e) { android.util.Log.w("Alias", "전화 채널 만들기 실패", e); }
+    }
+
+    /* 🔴 2026-11-21 와파 「진동만」 · 「무음」 전화 채널 — 화면은 똑같이 뜨고(중요도 높음) 소리만 다름 */
+    static void ensureQuietCallChannels(android.content.Context cx) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
+        try {
+            NotificationManager nm = cx.getSystemService(NotificationManager.class);
+            if (nm == null) return;
+            if (nm.getNotificationChannel("calls_vib") == null) {
+                android.app.NotificationChannel v = new android.app.NotificationChannel("calls_vib", "전화 (진동만)", NotificationManager.IMPORTANCE_HIGH);
+                v.setDescription("와파 설정에서 「진동만」을 고르면 이 채널로 알립니다");
+                v.setSound(null, null);
+                v.enableVibration(true);
+                v.setVibrationPattern(new long[]{0, 500, 300, 500, 300, 500});
+                v.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+                v.setBypassDnd(true);
+                nm.createNotificationChannel(v);
+            }
+            if (nm.getNotificationChannel("calls_quiet") == null) {
+                android.app.NotificationChannel q = new android.app.NotificationChannel("calls_quiet", "전화 (무음)", NotificationManager.IMPORTANCE_HIGH);
+                q.setDescription("와파 설정에서 「무음」을 고르면 소리 · 진동 없이 화면만 띄웁니다");
+                q.setSound(null, null);
+                q.enableVibration(false);
+                q.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+                nm.createNotificationChannel(q);
+            }
+        } catch (Exception e) { android.util.Log.w("Alias", "조용한 전화 채널 만들기 실패", e); }
     }
 }

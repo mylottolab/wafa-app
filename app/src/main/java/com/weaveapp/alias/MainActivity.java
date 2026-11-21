@@ -664,6 +664,13 @@ public class MainActivity extends BridgeActivity {
                      다 읽으면 화면의 window.__wafaSpoke(id) 를 부릅니다. 없으면 화면이 9초 뒤 알아서 넘어갑니다. */
                 @android.webkit.JavascriptInterface
                 public boolean ttsReady() { return ttsOk; }
+                /* 🔴 2026-11-21 와파 「전화 올 때」 벨 · 진동 · 무음 — 앱이 꺼져 있을 때 오는 전화도 이 값으로 */
+                @android.webkit.JavascriptInterface
+                public void setRingMode(String m) {
+                    String v = ("vibrate".equals(m) || "silent".equals(m)) ? m : "ring";
+                    getSharedPreferences("wafa", MODE_PRIVATE).edit().putString("ring_mode", v).apply();
+                    CallMessagingService.ensureQuietCallChannels(MainActivity.this);
+                }
                 @android.webkit.JavascriptInterface
                 public void speak(final String text, final String lang, final String id) { wafaSpeak(text, lang, id); }
                 @android.webkit.JavascriptInterface
