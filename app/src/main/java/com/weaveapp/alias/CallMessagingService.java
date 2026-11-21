@@ -139,6 +139,7 @@ public class CallMessagingService extends MessagingService {
             NotificationManager nmx = getSystemService(NotificationManager.class);
             if (nmx != null && !gone.isEmpty()) {
                 nmx.cancel("call-" + gone, CALL_NOTI_ID);
+                WafaVibe.stop(gone);
             }
             /* 🔴 2026-09-11 — 이 전화는 끝났다고 적어둡니다.
                이제 같은 번호의 푸시가 뒤늦게 와도 벨이 안 울립니다. */
@@ -183,6 +184,7 @@ public class CallMessagingService extends MessagingService {
             android.util.Log.i("Alias", "이미 끝난 전화입니다. 알림을 만들지 않습니다: " + callId);
             NotificationManager nmd = getSystemService(NotificationManager.class);
             if (nmd != null) nmd.cancel("call-" + callId, CALL_NOTI_ID);
+            WafaVibe.stop(callId);
             return;
         }
 
@@ -232,7 +234,7 @@ public class CallMessagingService extends MessagingService {
         ensureCallChannel();   // 🔴 버전 16 — 업데이트 뒤 앱을 아직 안 열었어도 벨이 울리게
         /* 🔴 2026-11-21 와파 「전화 올 때」 — ring(벨+진동) · vibrate(진동만) · silent(소리 · 진동 없이 화면만) */
         String rm = getSharedPreferences("wafa", MODE_PRIVATE).getString("ring_mode", "ring");
-        String chId = "vibrate".equals(rm) ? "calls_vib" : "silent".equals(rm) ? "calls_quiet" : "calls";
+        String chId = "vibrate".equals(rm) ? "calls_vib2" : "silent".equals(rm) ? "calls_quiet" : "calls";   // calls_vib2 = 소리 · 진동 없음(진동은 WafaVibe 가 직접)
         NotificationCompat.Builder b = new NotificationCompat.Builder(this, chId)
                 .setSmallIcon(android.R.drawable.sym_call_incoming)
                 .setContentTitle(who)
@@ -266,6 +268,7 @@ public class CallMessagingService extends MessagingService {
                 Notification n = b.build();
                 n.flags |= Notification.FLAG_INSISTENT;   // 🔴 2026-10-03 — 받을 때까지 반복
                 nm.notify("call-" + callId, CALL_NOTI_ID, n);
+                if ("vibrate".equals(rm)) WafaVibe.start(getApplicationContext(), callId);   // 🔴 2026-11-21 폰이 무음이어도 진동
             }
         } catch (Exception e) {
             android.util.Log.e("Alias", "전화 알림 만들기 실패", e);
@@ -328,6 +331,15 @@ public class CallMessagingService extends MessagingService {
                 v.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
                 v.setBypassDnd(true);
                 nm.createNotificationChannel(v);
+            }
+            if (nm.getNotificationChannel("calls_vib2") == null) {
+                android.app.NotificationChannel v2 = new android.app.NotificationChannel("calls_vib2", "전화 (진동만)", NotificationManager.IMPORTANCE_HIGH);
+                v2.setDescription("와파 설정에서 「진동만」 — 진동은 와파가 직접 울립니다(폰이 무음이어도)");
+                v2.setSound(null, null);
+                v2.enableVibration(false);
+                v2.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+                v2.setBypassDnd(true);
+                nm.createNotificationChannel(v2);
             }
             if (nm.getNotificationChannel("calls_quiet") == null) {
                 android.app.NotificationChannel q = new android.app.NotificationChannel("calls_quiet", "전화 (무음)", NotificationManager.IMPORTANCE_HIGH);

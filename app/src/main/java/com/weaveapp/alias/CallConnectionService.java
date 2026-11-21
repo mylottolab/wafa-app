@@ -390,6 +390,7 @@ public class CallConnectionService extends ConnectionService {
 
         /* 벨(전화 알림)을 끕니다 */
         private void stopRing() {
+            WafaVibe.stop(null);   // 🔴 2026-11-21
             try {
                 android.app.NotificationManager nm = ctx.getSystemService(android.app.NotificationManager.class);
                 if (nm != null) nm.cancel("call-" + callId, CallMessagingService.CALL_NOTI_ID);

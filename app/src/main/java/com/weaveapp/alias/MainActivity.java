@@ -682,6 +682,7 @@ public class MainActivity extends BridgeActivity {
                 }
                 @android.webkit.JavascriptInterface
                 public void cancelAllCalls() {
+                    WafaVibe.stop(null);
                     try {
                         NotificationManager nm = getSystemService(NotificationManager.class);
                         if (nm == null) return;
@@ -1243,6 +1244,7 @@ public class MainActivity extends BridgeActivity {
             NotificationManager nm = getSystemService(NotificationManager.class);
             if (nm == null || callId == null || callId.isEmpty()) return;
             nm.cancel("call-" + callId, CALL_NOTI_ID);
+            WafaVibe.stop(callId);
         } catch (Exception e) {
             android.util.Log.w("Alias", "알림 지우기 실패", e);
         }

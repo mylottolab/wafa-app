@@ -174,6 +174,7 @@ public class IncomingCallActivity extends Activity {
     }
 
     private void stopRing() {
+        WafaVibe.stop(null);   // 🔴 2026-11-21
         try {
             NotificationManager nm = getSystemService(NotificationManager.class);
             if (nm != null && !callId.isEmpty()) nm.cancel("call-" + callId, CallMessagingService.CALL_NOTI_ID);
